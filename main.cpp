@@ -78,6 +78,44 @@ private:
 
     ReadingStrategy *ReadingManner;
 
+    void DoReadUsingStrategy()
+    {
+        if (ReadingManner == nullptr)
+        {
+            cout << "Do nothing!";
+            return;
+        }
+        else
+        {
+            ReadingManner -> Read();
+        }
+    }
+    void DetectPopularOrNot()
+    {
+        if (IsPopular())
+        {
+            cout << "POPULAR";
+        }
+        else
+        {
+            cout << "UNPOPULAR";
+        }
+    }
+    void DetectBigOrNot()
+    {
+        if (GetPages() > 300)
+        {
+            BookIsBig = true;
+            cout << "BIG";
+        }
+        else
+        {
+            BookIsBig = false;
+            cout << "SMALL";
+        }
+    }
+
+
 protected:
     bool BookIsPopular;
     bool BookIsBig;
@@ -99,39 +137,35 @@ public:
     bool IsBig() const {return BookIsBig; }
     int GetPages() const { return Pages; }
 
-    virtual void Read()
+    virtual void PrintType() = 0;
+    virtual void Reviews() = 0;
+
+    void Read()
     {
-        if (ReadingManner == nullptr)
-        {
-            //Способ прочтения не задан, ничего не делаем
-            cout << "Do nothing! ";
-            return;
-        }
-        else
-        {
-            ReadingManner -> Read();
-        }
 
-        // Тут все как раньше...
-        if (IsPopular())
-        {
-            cout << "Reading POPULAR book... ";
-        }
-        if (!IsPopular())
-        {
-            cout << "Reading LESS-KNOWN book... ";
-        }
+        // 1. Вывести название книги
+        PrintType();
+        cout << " : ";
 
-        if (GetPages() > 300)
-        {
-            BookIsBig = true;
-            cout << "Reading BIG book... ";
-        }
-        if (!(GetPages() > 300))
-        {
-            BookIsBig = false;
-            cout << "Reading SMALL book... ";
-        }
+        // 2. Определить, популярная книга или нет
+         DetectPopularOrNot();
+         cout << " : ";
+
+         //2.1 Определить, большая книга или нет
+         DetectBigOrNot();
+         cout << " : ";
+
+         // 2.2 Прочесть отзывы книги перед ее прочтением
+         Reviews();
+         cout << " : ";
+
+         // 3. Если всё устроило, прочесть с использованием выбранной стратегии
+         DoReadUsingStrategy();
+
+         // 4. Конец алгоритма
+         cout << endl;
+
+
     }
     void SetReadingManner(ReadingStrategy *readingManner) { ReadingManner = readingManner; }
 };
@@ -141,8 +175,10 @@ class Novel : public Book
 public:
     Novel();
     virtual ~Novel() {}
-    // Переопределение функции в унаследованном классе (функция виртуальная!)
-    void Read() override;
+
+    void PrintType() {cout << "Novel";}
+    void Reviews() {cout << "Read reviews from friends";}
+
 };
 // Реализация конструктора
 Novel::Novel() : Book(BookGenre::Fiction, 300)
@@ -151,12 +187,6 @@ Novel::Novel() : Book(BookGenre::Fiction, 300)
      SetReadingManner(CreateReadingStrategy(ReadingMannerEnum::Online));
 }
 
-void Novel::Read()
-{
-    cout << "Reading a novel...";
-    Book::Read();
-    cout << endl;
-}
 
 class Biography : public Book {
 public:
@@ -166,15 +196,9 @@ public:
     }
     virtual ~Biography() {}
 
-    void Read() override;
+    void PrintType() {cout << "Biography";}
+    void Reviews() {cout << "Read the critics' reviews";}
 };
-
-void Biography::Read()
-{
-    cout << "Reading a biography...";
-    Book::Read();
-    cout << endl;
-}
 
 class Encyclopedia: public Book
 {
@@ -184,16 +208,10 @@ public:
         SetReadingManner(CreateReadingStrategy(ReadingMannerEnum::Audio));
     }
     virtual ~Encyclopedia() {}
-
-    void Read() override;
+    void PrintType() {cout << "Encyclopedia";}
+    void Reviews() {cout << "Read reviews on online platforms";}
 };
 
-void Encyclopedia::Read()
-{
-    cout << "Reading an Encyclopedia...";
-    Book::Read();
-    cout << endl;
-}
 
 enum class BookType {
     Novel = 1,
@@ -344,7 +362,7 @@ int main()
         Book *newBook = CreateBook(book_type);
 
         // Задать способ прочтения на этапе создания (вариант 2)
-         newBook->SetReadingManner(CreateReadingStrategy(ReadingMannerEnum::Social));
+         //newBook->SetReadingManner(CreateReadingStrategy(ReadingMannerEnum::Social));
 
         BookArray.Add(newBook);
     }
